@@ -57,7 +57,7 @@ public class Person extends Agent {
 		 * 
 		 */
 		
-		System.out.println("{"+Person.this.name+"} has assignments with "+Person.this.schedule.getPeopleIHaveAssignmentsWith().toString());
+		//System.out.println("{"+Person.this.name+"} has assignments with "+Person.this.schedule.getPeopleIHaveAssignmentsWith().toString());
 
 		waitingForProposals();
 	}
