@@ -9,17 +9,17 @@ public class Assignment {
 	DateTime endHour;
 	Duration duration;
 	int priority; // 0 - opcional , 1 - obrigatorio
-	Vector<Participant> participant;
+	Vector<Participant> participants;
 	
-	public Assignment(String name, DateTime sh, DateTime eh, String proposer, int priority){
+	public Assignment(String name, DateTime sh, DateTime eh,/* Vector<Participant> parti,*/ int priority, String proposer){
 		this.name = name;
 		this.startHour = sh;
 		this.endHour = eh;
-		this.duration = new Duration(sh, eh);
+		//this.duration = new Duration(sh, eh);
 		this.priority = priority;
-		this.participant = new Vector<Participant>();
-		Participant sender = new Participant(proposer);
-		participant.addElement(sender);
+		//this.participants = parti;
+		//Participant sender = new Participant(proposer);
+		//participants.addElement(sender);
 	}
 	
 	public String getName() {
@@ -64,24 +64,24 @@ public class Assignment {
 	}
 
 	public int getPriorityOfParticipant(String name) {
-		for(int i = 0; i < participant.size(); i++){
-			if(participant.elementAt(i).getName().equals(name))
-				return participant.elementAt(i).getPriority();
+		for(int i = 0; i < participants.size(); i++){
+			if(participants.elementAt(i).getName().equals(name))
+				return participants.elementAt(i).getPriority();
 		}
 		return -1;
 	}
 
 	public Vector<Participant> getParticipant() {
-		return participant;
+		return participants;
 	}
 
 	public void setParticipant(Vector<Participant> participant) {
-		this.participant = participant;
+		this.participants = participant;
 	}
 
 	public boolean hasParticipant(String name){
-		for(int i = 0; i < participant.size(); i++){
-			if(participant.elementAt(i).getName().equals(name))
+		for(int i = 0; i < participants.size(); i++){
+			if(participants.elementAt(i).getName().equals(name))
 				return true;;
 		}
 		return false;
@@ -107,11 +107,16 @@ public class Assignment {
 	public String myParticipants(){
 		String ret = "[";
 		
-		for(int i = 0; i < participant.size(); i++){
-			ret += participant.elementAt(i).toString();
+		for(int i = 0; i < participants.size(); i++){
+			ret += participants.elementAt(i).toString();
 		}
 		ret += "]";
 		return ret;
+	}
+	
+	public boolean hasNoParticipants(){
+
+		return participants.size() == 0;
 	}
 	
 }

@@ -1,10 +1,14 @@
 package PersonClasses;
+import java.util.Iterator;
 import java.util.Vector;
+
+import org.joda.time.DateTime;
 
 public class Schedule {
 	
 	private String owner;
-	Vector<Assignment> assignments = null;
+	Vector<Assignment> assignments;
+	Vector<String> peopleHaveAssignesWith;
 
 	public Schedule(String owner){
 		this.owner = owner;
@@ -50,8 +54,11 @@ public class Schedule {
 		this.assignments = assignments;
 	}
 
-	public void addAssignment(Assignment e) {
-		assignments.add(e);
+	public void addAssignment(Assignment a) {
+		
+		System.out.println("Vou inserir");
+		assignments.add(a);
+		System.out.println("Inseri");
 
 	}
 
@@ -80,9 +87,9 @@ public class Schedule {
 
 		//Se ainda não existir coloca no vetor
 		if( getAssignment(p.getAssignmentName()) == null){
-
-			Assignment e = new Assignment(p.getAssignmentName(), p.getStartHour(), p.getEndHour(), p.getProposer(), p.getPriority());
-			assignments.add(e);
+			//Modificar para construtor novo
+			//Assignment e = new Assignment(p.getAssignmentName(), p.getStartHour(), p.getEndHour(), p.getProposer(), p.getPriority());
+			//assignments.add(e);
 			System.out.println("{"+owner+"}inserted new assignment: "+p.getAssignmentName());
 		}
 		else{
@@ -95,11 +102,22 @@ public class Schedule {
 		//TODO
 		return false;
 	}
-
 	
-	public Object getPeopleIHaveAssignmentsWith() {
-		// TODO 
-		return null;
+	//0 = ok 1 = nogood 2 = stop
+	public int checkAvailability(DateTime init, DateTime end){
+		
+		for(int i=0;i<assignments.size();i++){
+			if(  (init.isBefore(assignments.elementAt(i).getStartHour())&&end.isBefore(assignments.elementAt(i).getStartHour()))
+					&& init.isAfter(assignments.elementAt(i).getEndHour())){}
+			else return 1;
+		}
+		return 0;
+	}
+	
+	public boolean getPeopleAssignmentsWith(String Person) {
+		 
+		//TODO
+		return true;
 	}
 
 }
