@@ -31,7 +31,7 @@ public class Person extends Agent {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String name;
-	Schedule schedule;
+	private static Schedule schedule;
 	int assignmentsQuant;
 
 	class ScheduleBehaviour extends CyclicBehaviour{
@@ -230,7 +230,7 @@ public class Person extends Agent {
 
 
 				jade.lang.acl.ACLMessage msg = blockingReceive();
-				System.out.println("Mensagem recebida" + msg);
+				//System.out.println("Mensagem recebida" + msg);
 
 				if(msg.getPerformative() == jade.lang.acl.ACLMessage.FAILURE){
 					System.out.println("{"+Person.this.name+"}received a failure message, this person is terminating");
@@ -268,7 +268,8 @@ public class Person extends Agent {
 							System.out.println("Disponibilidade");	
 							//Verificar disponibilidade primeiro
 							//0 = ok 1 = nogood 2 = stop
-							int typeOfResponse = schedule.checkAvailability(initialTime, endingTime); 
+							System.out.println("Dono do schedule:" + schedule.getOwner());
+							int typeOfResponse = Person.schedule.checkAvailability(initialTime, endingTime); 
 
 							if(typeOfResponse == 0)
 								sendOK(msg);
@@ -378,23 +379,15 @@ public class Person extends Agent {
 
 		String[] partNames = name.split("@");
 		String nameSplit = partNames[0];
-		System.out.println("O meu nameSplit é: " + nameSplit);
+		schedule = new Schedule(nameSplit);
 		Assignment a;
 
 		if(nameSplit.equals("Joao")){
-			/*System.out.println("EU sou o Pedro");
-			//Vector<Participant> parti = new Vector<Participant>(); parti.add(new Participant("Miguel", 1));
-			System.out.println("EU sou o Pedro2");
-			DateTime dt1 = new DateTime(2015, 11, 28, 8, 0);
-			System.out.println(dt1.toString());
-			a = new Assignment("Play Football", new DateTime(2015, 11, 28, 8, 0), new DateTime(2015, 11, 28, 10, 0), 1, name);
-			a.print();
-			System.out.println("EU sou o Pedro3");
-			schedule.addAssignment(a);
-			System.out.println("EU sou o Pedro4");*/
+			System.out.println("EU sou o João");
 			Vector<Participant> parti = new Vector<Participant>(); parti.add(new Participant("Miguel", 1));
-			Assignment as = new Assignment("Study Session", new DateTime(2014, 11, 10, 8, 0, 0, 0), new DateTime(2014, 11, 10, 12, 0, 0, 0), 1,name);
-			Person.this.schedule.addAssignment(as);
+			a =new Assignment("Study Session", new DateTime(2014, 11, 10, 8, 0), new DateTime(2014, 11, 10, 12, 0), parti, 1,"Pedro");
+			Schedule.addAssignment(a);
+
 		}
 
 		try {
@@ -403,28 +396,12 @@ public class Person extends Agent {
 			e.printStackTrace();
 		}
 
-		Person.this.schedule = new Schedule(Person.this.name);
 		this.assignmentsQuant = this.schedule.getAssignments().size();
 
 		ABTBehaviour myBehaviour = new ABTBehaviour(this);
 		addBehaviour(myBehaviour);
 
 		//TODO: PEOPLE ONLINE
-	}
-
-	public void waitingForProposals() {
-		//TODO
-		try {
-			while (true) {
-				System.out.println("Waiting for new proposals...");
-				Thread.sleep(5 * 1000);
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		//At the end
-		exit();
 	}
 
 	protected void exit() {

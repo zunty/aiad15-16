@@ -11,15 +11,24 @@ public class Assignment {
 	int priority; // 0 - opcional , 1 - obrigatorio
 	Vector<Participant> participants;
 	
-	public Assignment(String name, DateTime sh, DateTime eh,/* Vector<Participant> parti,*/ int priority, String proposer){
+	public Assignment(String name, DateTime sh, DateTime eh, Vector<Participant> parti, int priority, String proposer){
 		this.name = name;
 		this.startHour = sh;
 		this.endHour = eh;
-		//this.duration = new Duration(sh, eh);
+		this.duration = new Duration(sh, eh);
 		this.priority = priority;
+		this.participants = parti;
+		Participant sender = new Participant(proposer);
+		participants.addElement(sender);
+	}
+	public Assignment(){
+		this.name = "Joao";
+		
+		//this.duration = new Duration(sh, eh);
 		//this.participants = parti;
 		//Participant sender = new Participant(proposer);
 		//participants.addElement(sender);
+		participants = new Vector<Participant>();
 	}
 	
 	public String getName() {

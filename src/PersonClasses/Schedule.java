@@ -6,8 +6,8 @@ import org.joda.time.DateTime;
 
 public class Schedule {
 	
-	private String owner;
-	Vector<Assignment> assignments;
+	private static String owner;
+	private static Vector<Assignment> assignments = new Vector<Assignment>();
 	Vector<String> peopleHaveAssignesWith;
 
 	public Schedule(String owner){
@@ -54,12 +54,10 @@ public class Schedule {
 		this.assignments = assignments;
 	}
 
-	public void addAssignment(Assignment a) {
-		
-		System.out.println("Vou inserir");
+	public static void addAssignment(Assignment a) {
+	
 		assignments.add(a);
-		System.out.println("Inseri");
-
+		System.out.println("Inseri no " + owner);
 	}
 
 	public String myAssignments() {
@@ -106,11 +104,17 @@ public class Schedule {
 	//0 = ok 1 = nogood 2 = stop
 	public int checkAvailability(DateTime init, DateTime end){
 		
+		System.out.println("Tempo inicial:" + init.toString());
+		System.out.println("Tempo final" + end.toString());
+		System.out.println("Tamanho assignment inicial do" + owner + ":" + assignments.size());
+
 		for(int i=0;i<assignments.size();i++){
+			System.out.println("entra!");
 			if(  (init.isBefore(assignments.elementAt(i).getStartHour())&&end.isBefore(assignments.elementAt(i).getStartHour()))
 					&& init.isAfter(assignments.elementAt(i).getEndHour())){}
-			else return 1;
+			else {	System.out.println("Não está disponível");return 1;}
 		}
+		System.out.println("Está disponível");
 		return 0;
 	}
 	
