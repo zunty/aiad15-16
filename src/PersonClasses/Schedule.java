@@ -5,7 +5,7 @@ import java.util.Vector;
 import org.joda.time.DateTime;
 
 public class Schedule {
-	
+
 	private static String owner;
 	private static Vector<Assignment> assignments = new Vector<Assignment>();
 	Vector<String> peopleHaveAssignesWith;
@@ -14,16 +14,16 @@ public class Schedule {
 		this.owner = owner;
 		assignments = new Vector<Assignment>();
 	}
-	
+
 	public String getOwner(){
 		return owner;
 	}
-	
+
 	public void setOwner(String newOwner){
 		this.owner = newOwner;
 	}
-	
- 	public Vector<Assignment> getAssignments() {
+
+	public Vector<Assignment> getAssignments() {
 		return assignments;
 	}
 
@@ -55,13 +55,13 @@ public class Schedule {
 	}
 
 	public static void addAssignment(Assignment a) {
-	
+
 		assignments.add(a);
 		System.out.println("Inseri no " + owner);
 	}
 
 	public String myAssignments() {
-		
+
 		String myassignments = new String();
 
 		for(int i = 0; i < assignments.size(); i++) {
@@ -83,7 +83,7 @@ public class Schedule {
 
 	public void insertProposal(Proposal p){
 
-		//Se ainda não existir coloca no vetor
+		//Se ainda nï¿½o existir coloca no vetor
 		if( getAssignment(p.getAssignmentName()) == null){
 			//Modificar para construtor novo
 			//Assignment e = new Assignment(p.getAssignmentName(), p.getStartHour(), p.getEndHour(), p.getProposer(), p.getPriority());
@@ -100,30 +100,32 @@ public class Schedule {
 		//TODO
 		return false;
 	}
-	
+
 	//0 = ok 1 = nogood 2 = stop
 	public int checkAvailability(DateTime init, DateTime end){
-		
+
 		System.out.println("Tempo inicial:" + init.toString());
 		System.out.println("Tempo final" + end.toString());
 		System.out.println("Tamanho assignment inicial do" + owner + ":" + assignments.size());
 
 		for(int i=0;i<assignments.size();i++){
 			System.out.println("entra!");
-			if(  (init.isBefore(assignments.elementAt(i).getStartHour())&&end.isBefore(assignments.elementAt(i).getStartHour()))
-					&& init.isAfter(assignments.elementAt(i).getEndHour())){}
-			else {	System.out.println("Não está disponível");return 1;}
+			//verifica - verificar quando comeÃ§am a mesma hora
+			if(  (init.isAfter(assignments.elementAt(i).getStartHour())&&init.isBefore(assignments.elementAt(i).getEndHour()))) {
+				System.out.println("Nï¿½o estï¿½ disponï¿½vel");
+				return 1;
+			}
 		}
-		System.out.println("Está disponível");
+		System.out.println("Estï¿½ disponï¿½vel");
 		return 0;
 	}
-	
+
 	public boolean getPeopleAssignmentsWith(String Person) {
-		 
+
 		//TODO
 		return true;
 	}
 
 }
 
-	
+

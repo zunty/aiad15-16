@@ -32,8 +32,12 @@ public class Person extends Agent {
 	private static final long serialVersionUID = 1L;
 	private String name;
 	private static Schedule schedule;
-	int assignmentsQuant;
-
+	public int assignmentsQuant;
+	
+	public static Schedule getScedule(){
+		return schedule;
+	}
+	
 	class ScheduleBehaviour extends CyclicBehaviour{
 
 		boolean foundEveryone = false;
@@ -221,6 +225,7 @@ public class Person extends Agent {
 		public ABTBehaviour(Agent person) {
 			super (person);
 			schedule = new Schedule(name);
+			schedule.addAssignment(new Assignment());
 		}
 
 		@Override
@@ -271,10 +276,16 @@ public class Person extends Agent {
 							System.out.println("Dono do schedule:" + schedule.getOwner());
 							int typeOfResponse = Person.schedule.checkAvailability(initialTime, endingTime); 
 
-							if(typeOfResponse == 0)
+							if(typeOfResponse == 0){
+								System.out.println("Dono do schedule:" + schedule.getOwner());
+								schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
 								sendOK(msg);
-							else if(typeOfResponse == 1)
+								//adiciona assignement
+								}
+							else if(typeOfResponse == 1){
+								System.out.println("Vou mandar nogood----");
 								sendNoGood(msg);
+							}
 							else if(typeOfResponse == 2)
 								sendStp(msg);
 							else System.err.println("Erro no tipo de envio de mensagem");
@@ -288,7 +299,7 @@ public class Person extends Agent {
 						System.err.println(name + " - Received an invalid message");
 					}
 				} 
-
+				//depos de mandar mensagem ok ou nogood 
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.INFORM) {
 
 					int separatorIndex = msg.getContent().indexOf('-');
@@ -305,7 +316,7 @@ public class Person extends Agent {
 							break;
 						case "STP":
 							System.out.println("I received a STP message!");
-							//TODO: Rejeitar a proposta e não contra-propor
+							//TODO: Rejeitar a proposta e nï¿½o contra-propor
 							//end = true;
 							break;
 						default:
@@ -316,8 +327,11 @@ public class Person extends Agent {
 					else {
 						System.err.println("Received an invalid message");
 					}
-				} 
-
+				}
+				//nao aceitar
+				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REJECT_PROPOSAL) {
+					
+				}
 
 				else System.err.println("Received an invalid message type.");
 			}	
@@ -333,6 +347,8 @@ public class Person extends Agent {
 			System.out.println(sendMsg + "mensagem a enviar");
 			send(sendMsg);
 			System.out.println(sendMsg + "mensagem enviada");
+			
+			
 
 		}
 
@@ -363,10 +379,10 @@ public class Person extends Agent {
 		}
 	}
 
-	// método setup -------------------------------------------------------------------------------
+	// mï¿½todo setup -------------------------------------------------------------------------------
 	protected void setup() {
 		
-		// Base para a comunicação de Agentes
+		// Base para a comunicaï¿½ï¿½o de Agentes
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
@@ -383,10 +399,10 @@ public class Person extends Agent {
 		Assignment a;
 
 		if(nameSplit.equals("Joao")){
-			System.out.println("EU sou o João");
+			System.out.println("EU sou o Joï¿½o");/*
 			Vector<Participant> parti = new Vector<Participant>(); parti.add(new Participant("Miguel", 1));
 			a =new Assignment("Study Session", new DateTime(2014, 11, 10, 8, 0), new DateTime(2014, 11, 10, 12, 0), parti, 1,"Pedro");
-			Schedule.addAssignment(a);
+			Schedule.addAssignment(a);*/
 
 		}
 
@@ -403,11 +419,11 @@ public class Person extends Agent {
 
 		//TODO: PEOPLE ONLINE
 	}
-
+	
 	protected void exit() {
 		System.out.println("Agent "+getLocalName()+": terminating");
 
-		// termina comunicação
+		// termina comunicaï¿½ï¿½o
 		try {
 			DFService.deregister(this);  
 		} catch(FIPAException e) {
