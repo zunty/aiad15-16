@@ -100,12 +100,12 @@ public class Person extends Agent {
 							if(typeOfResponse == 0){
 								System.out.println("Dono do schedule:" + Person.this.schedule.getOwner());
 								Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
-								sendOK(msg,eventName,convID);
+								sendOK(msg,eventName,convID,initialTime,endingTime);
 								//adiciona assignement
 							}
 							else if(typeOfResponse == 1){
 								System.out.println("Vou mandar nogood----");
-								sendNoGood(msg, eventName,convID);
+								sendNoGood(msg, eventName,convID,initialTime,endingTime);
 							}
 							else if(typeOfResponse == 2)
 								sendStp(msg);
@@ -132,12 +132,30 @@ public class Person extends Agent {
 					int separatorIndex = msg.getContent().indexOf('-');
 					if (separatorIndex != -1) {
 						String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
+						/*
+						String[] parts = msg.getContent().split("-");
 						
+						String convID = parts[1];
+						String eventName = parts[2];
+						String[] partsInitTime = parts[3].split(":");
+						String[] partsEndTime = parts[4].split(":");
+						int[] initTime = new int[5];
+						int[] endTime = new int[5];
+
+						for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
+						DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
+								initTime[4]);
+
+						for(int i=0;i<5;i++){endTime[i] = Integer.parseInt(partsEndTime[i]);}
+						DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
+								endTime[4]);*/
 						switch (msgType) {
 						case "OK?":
 							System.out.println("I received an OK message!");
+							//TODO:send confirm
+							//TODO: Adicionar vector para participantes
 							//Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
-							
+							//sendConfirm();
 							//TODO: Adicionar evento aos dois utilizadores
 							break;
 						case "NOGOOD":
@@ -167,21 +185,31 @@ public class Person extends Agent {
 			}	
 		}	
 
-		private void sendOK(jade.lang.acl.ACLMessage message, String eventName, String convID){
+		private void sendOK(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("OK?-" + eventName);
+			sendMsg.setContent("OK?-" + eventName + "-" + init + "-" + end);
+			sendMsg.setConversationId(convID);
+			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
+			send(sendMsg);
+		}
+		
+		private void sendConfirm(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end){
+			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.CONFIRM);
+			
+			sendMsg.addReceiver(message.getSender());
+			sendMsg.setContent("CONFIRM-" + eventName + "-" + init + "-" + end);
 			sendMsg.setConversationId(convID);
 			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
-		private void sendNoGood(jade.lang.acl.ACLMessage message, String eventName, String convID){
+		private void sendNoGood(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("NOGOOD-" + eventName);
+			sendMsg.setContent("NOGOOD-" + eventName + "-" + init + "-" + end);
 			sendMsg.setConversationId(convID);
 			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
