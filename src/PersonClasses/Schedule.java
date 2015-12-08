@@ -6,9 +6,10 @@ import org.joda.time.DateTime;
 
 public class Schedule {
 
-	private static String owner;
-	private static Vector<Assignment> assignments = new Vector<Assignment>();
+	private String owner;
+	private Vector<Assignment> assignments = new Vector<Assignment>();
 	Vector<String> peopleHaveAssignesWith;
+	
 
 	public Schedule(String owner){
 		this.owner = owner;
@@ -54,7 +55,7 @@ public class Schedule {
 		this.assignments = assignments;
 	}
 
-	public static void addAssignment(Assignment a) {
+	public void addAssignment(Assignment a) {
 
 		assignments.add(a);
 		System.out.println("Inseri no " + owner);

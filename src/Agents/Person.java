@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 
+import PersonClasses.AllAgents;
 import PersonClasses.Assignment;
 import PersonClasses.Participant;
 import PersonClasses.Proposal;
@@ -31,190 +32,9 @@ public class Person extends Agent {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String name;
-	private static Schedule schedule;
 	public int assignmentsQuant;
-	
-	public static Schedule getScedule(){
-		return schedule;
-	}
-	
-	class ScheduleBehaviour extends CyclicBehaviour{
-
-		boolean foundEveryone = false;
-		int currentAssignment=0;
-		Vector<Proposal> proposals = null;
-		Vector<Restriction> restrictions = null;
-		public boolean allFinished = false;
-
-		public ScheduleBehaviour(Agent person) {
-			super (person);
-			proposals = new Vector<Proposal>();
-			restrictions = new Vector<Restriction>();
-
-			Vector<Assignment> assignments = Person.this.schedule.getAssignments();
-
-			//Number of Events
-			for(int i=0; i< assignments.size(); i++){
-				if(assignments.elementAt(i).hasNoParticipants())
-					currentAssignment++;
-			}
-		}
-
-
-		@Override
-		public void action() {
-			if (allFinished)
-				return;
-
-
-
-			jade.lang.acl.ACLMessage msg = blockingReceive();
-
-			if(msg.getPerformative() == jade.lang.acl.ACLMessage.FAILURE){
-				System.out.println("{"+Person.this.name+"}received a failure message, this person is terminating");
-				Person.this.doDelete();
-			}
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPOSE) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation to " + name + "!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.ACCEPT_PROPOSAL) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REJECT_PROPOSAL) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPOSE) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.INFORM_IF) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.CONFIRM) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-			else if (msg.getPerformative() == jade.lang.acl.ACLMessage.CANCEL) {
-				int separatorIndex = msg.getContent().indexOf('-');
-				if (separatorIndex != -1) {
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					switch (msgType) {
-					case "INVITATION":
-						System.out.println("This is an invitation!");
-						// TODO RegisterInvitation(msg);
-						break;
-					default:
-						System.err.println("Received an invalid PROPOSE message type.");
-						break;
-					}
-				}
-				else {
-					System.err.println("Received an invalid message");
-				}
-			} 
-
-
-
-
-			else System.err.println("Received an invalid message type.");
-
-		}
-	}
+	Vector<AllAgents> allAgents;
+	public Schedule schedule;
 
 	class ABTBehaviour extends CyclicBehaviour{
 
@@ -224,8 +44,6 @@ public class Person extends Agent {
 
 		public ABTBehaviour(Agent person) {
 			super (person);
-			schedule = new Schedule(name);
-			schedule.addAssignment(new Assignment());
 		}
 
 		@Override
@@ -233,7 +51,7 @@ public class Person extends Agent {
 
 			while(!end){
 
-
+				//findAllAgents();
 				jade.lang.acl.ACLMessage msg = blockingReceive();
 				//System.out.println("Mensagem recebida" + msg);
 
@@ -265,40 +83,53 @@ public class Person extends Agent {
 							for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
 							DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
 									initTime[4]);
-							
+
 							for(int i=0;i<5;i++){endTime[i] = Integer.parseInt(partsEndTime[i]);}
 							DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
 									endTime[4]);
+							int typeOfResponse = 0;
+
+							//System.out.println("agentssize: " + allAgents.size());
+							//for(int i=0; i< allAgents.size(); i++){
+							//if( allAgents.elementAt(i).getAid().equals(name)){
+
 
 							System.out.println("Disponibilidade");	
 							//Verificar disponibilidade primeiro
 							//0 = ok 1 = nogood 2 = stop
-							System.out.println("Dono do schedule:" + schedule.getOwner());
-							int typeOfResponse = Person.schedule.checkAvailability(initialTime, endingTime); 
+							System.out.println("Dono do schedule:"+Person.this.schedule.getOwner());
+							typeOfResponse = Person.this.schedule.checkAvailability(initialTime, endingTime); 
+							//}
 
 							if(typeOfResponse == 0){
-								System.out.println("Dono do schedule:" + schedule.getOwner());
-								schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
+								System.out.println("Dono do schedule:" + Person.this.schedule.getOwner());
+								Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
 								sendOK(msg);
 								//adiciona assignement
-								}
+							}
 							else if(typeOfResponse == 1){
 								System.out.println("Vou mandar nogood----");
 								sendNoGood(msg);
 							}
 							else if(typeOfResponse == 2)
 								sendStp(msg);
+
 							else System.err.println("Erro no tipo de envio de mensagem");
 							break;
+
+
 						default:
 							System.err.println(name + " - Received an invalid PROPOSE message type.");
 							break;
 						}
 					}
+
+
 					else {
 						System.err.println(name + " - Received an invalid message");
-					}
-				} 
+
+					} 
+				}
 				//depos de mandar mensagem ok ou nogood 
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.INFORM) {
 
@@ -330,7 +161,7 @@ public class Person extends Agent {
 				}
 				//nao aceitar
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REJECT_PROPOSAL) {
-					
+
 				}
 
 				else System.err.println("Received an invalid message type.");
@@ -347,8 +178,8 @@ public class Person extends Agent {
 			System.out.println(sendMsg + "mensagem a enviar");
 			send(sendMsg);
 			System.out.println(sendMsg + "mensagem enviada");
-			
-			
+
+
 
 		}
 
@@ -381,30 +212,24 @@ public class Person extends Agent {
 
 	// m�todo setup -------------------------------------------------------------------------------
 	protected void setup() {
-		
+
+		Object[] args = getArguments();
+		if(args != null && args.length > 0) {
+			this.name = (String) args[0];
+			System.out.println("{"+Person.this.name+"}Arguments: " + args.toString());
+		} else {
+			System.out.println("{"+Person.this.name+"}I don't have arguments.");
+		}
+
 		// Base para a comunica��o de Agentes
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
-		this.name = getName();
-
 		sd.setName(getName());
+
 		System.out.println("I am " + this.name + " and this is my getName(): " + getName());
 		sd.setType("Person");
 		dfd.addServices(sd);
-
-		String[] partNames = name.split("@");
-		String nameSplit = partNames[0];
-		schedule = new Schedule(nameSplit);
-		Assignment a;
-
-		if(nameSplit.equals("Joao")){
-			System.out.println("EU sou o Jo�o");/*
-			Vector<Participant> parti = new Vector<Participant>(); parti.add(new Participant("Miguel", 1));
-			a =new Assignment("Study Session", new DateTime(2014, 11, 10, 8, 0), new DateTime(2014, 11, 10, 12, 0), parti, 1,"Pedro");
-			Schedule.addAssignment(a);*/
-
-		}
 
 		try {
 			DFService.register(this, dfd);
@@ -412,14 +237,46 @@ public class Person extends Agent {
 			e.printStackTrace();
 		}
 
-		this.assignmentsQuant = this.schedule.getAssignments().size();
 
+		if(Person.this.name.equals("Pedro")){
+		}
+		else if(Person.this.name.equals("Joao")){
+		}
+
+		//this.assignmentsQuant = Person.this.schedule.getAssignments().size();
+		Person.this.schedule= new Schedule(Person.this.name); 
 		ABTBehaviour myBehaviour = new ABTBehaviour(this);
 		addBehaviour(myBehaviour);
 
+		Person.this.allAgents = new Vector<AllAgents>();
+		findAllAgents();
+
 		//TODO: PEOPLE ONLINE
 	}
-	
+
+	private void findAllAgents() {
+		// TODO Auto-generated method stub
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd1 = new ServiceDescription();
+		sd1.setType("Person");
+		template.addServices(sd1);
+
+		try {
+			DFAgentDescription[] result = DFService.search(this, template);
+			System.out.println("length= "+ result.length);
+			for(int i=0; i<result.length; ++i){
+
+
+				System.out.println("vou inserir ");	
+
+				AllAgents po = new AllAgents(result[i].getName());
+				allAgents.addElement(po);
+				System.out.println("agents.size: "+ allAgents.size());	
+			}
+		} catch(FIPAException e) { e.printStackTrace(); }
+
+	}
+
 	protected void exit() {
 		System.out.println("Agent "+getLocalName()+": terminating");
 
