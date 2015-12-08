@@ -1,1 +1,1 @@
-http://wifi-interno.fe.up.pt:7778/acc
+http://172.30.42.247:7778/acc

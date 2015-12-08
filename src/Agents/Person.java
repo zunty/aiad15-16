@@ -89,11 +89,7 @@ public class Person extends Agent {
 									endTime[4]);
 							int typeOfResponse = 0;
 
-							//System.out.println("agentssize: " + allAgents.size());
-							//for(int i=0; i< allAgents.size(); i++){
-							//if( allAgents.elementAt(i).getAid().equals(name)){
-
-
+							
 							System.out.println("Disponibilidade");	
 							//Verificar disponibilidade primeiro
 							//0 = ok 1 = nogood 2 = stop
@@ -104,12 +100,12 @@ public class Person extends Agent {
 							if(typeOfResponse == 0){
 								System.out.println("Dono do schedule:" + Person.this.schedule.getOwner());
 								Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
-								sendOK(msg);
+								sendOK(msg,eventName,convID);
 								//adiciona assignement
 							}
 							else if(typeOfResponse == 1){
 								System.out.println("Vou mandar nogood----");
-								sendNoGood(msg);
+								sendNoGood(msg, eventName,convID);
 							}
 							else if(typeOfResponse == 2)
 								sendStp(msg);
@@ -136,9 +132,12 @@ public class Person extends Agent {
 					int separatorIndex = msg.getContent().indexOf('-');
 					if (separatorIndex != -1) {
 						String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
+						
 						switch (msgType) {
 						case "OK?":
 							System.out.println("I received an OK message!");
+							//Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
+							
 							//TODO: Adicionar evento aos dois utilizadores
 							break;
 						case "NOGOOD":
@@ -168,31 +167,24 @@ public class Person extends Agent {
 			}	
 		}	
 
-		private void sendOK(jade.lang.acl.ACLMessage message){
+		private void sendOK(jade.lang.acl.ACLMessage message, String eventName, String convID){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
-			String evento="quaquer merda"; //TODO:Ir buscar nome do envento
-
+			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("OK?-" + evento);
-			sendMsg.setConversationId("ID do evento");
-			System.out.println(sendMsg + "mensagem a enviar");
+			sendMsg.setContent("OK?-" + eventName);
+			sendMsg.setConversationId(convID);
+			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
-			System.out.println(sendMsg + "mensagem enviada");
-
-
-
 		}
 
-		private void sendNoGood(jade.lang.acl.ACLMessage message){
+		private void sendNoGood(jade.lang.acl.ACLMessage message, String eventName, String convID){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
-			String evento="quaquer merda"; //TODO:Ir buscar nome do envento
-
+			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("NOGOOD-" + evento);
-			sendMsg.setConversationId("ID do evento");
-			System.out.println(sendMsg + "mensagem a enviar");
+			sendMsg.setContent("NOGOOD-" + eventName);
+			sendMsg.setConversationId(convID);
+			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
-			System.out.println(sendMsg + "mensagem enviada");
 
 		}
 
@@ -218,7 +210,8 @@ public class Person extends Agent {
 			this.name = (String) args[0];
 			System.out.println("{"+Person.this.name+"}Arguments: " + args.toString());
 		} else {
-			System.out.println("{"+Person.this.name+"}I don't have arguments.");
+			//System.out.println("{"+Person.this.name+"}I don't have arguments.");
+			Person.this.name= getAID().getLocalName();
 		}
 
 		// Base para a comunica��o de Agentes
