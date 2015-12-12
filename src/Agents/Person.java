@@ -182,6 +182,42 @@ public class Person extends Agent {
 					}
 				}
 				
+				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPAGATE) {
+					
+					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
+					System.out.println(msg.getContent().toString());
+					String[] parts = msg.getContent().split("-");
+					
+					String convID = parts[1];
+					String eventName = parts[2];
+					String[] partsInitTime = parts[3].split(":");
+					String[] partsEndTime = parts[4].split(":");
+					int[] initTime = new int[5];
+					int[] endTime = new int[5];
+					String[] convidados = parts[5].split(";");
+					
+					for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
+					DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
+							initTime[4]);
+
+					for(int i=0;i<5;i++){endTime[i] = Integer.parseInt(partsEndTime[i]);}
+					DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
+							endTime[4]);
+					
+					//TODO:CICLO FOR PARA TODOS OS USERS QUE VAO SER CONVIDADOS
+					AID send = null;
+					
+					for(int i = 0;i<convidados.length;i++){
+						System.out.println("Vou enviar um invitation para: " + convidados[i]);
+						for(int j = 0;j<allAgents.size();j++){
+							if(convidados[i].equals(allAgents.elementAt(j).getAid().getLocalName()))
+								send = allAgents.elementAt(j).getAid();
+						}
+						sendInvitation(msg,convID,eventName,initialTime,endingTime,send);
+					}
+					
+				}
+				
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.CONFIRM) {
 					
 					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
@@ -229,6 +265,22 @@ public class Person extends Agent {
 			String endStr = fmt2.print(end);
 			
 			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
+			sendMsg.setConversationId(convID);
+			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
+			send(sendMsg);
+		}
+		
+		private void sendInvitation(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end, AID guest){
+			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.PROPOSE);
+			
+			sendMsg.addReceiver(guest);
+			
+			org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("y:M:d:H:m");
+			String initStr = fmt.print(init);
+			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
+			String endStr = fmt2.print(end);
+			
+			sendMsg.setContent("INVITATION-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
 			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
@@ -287,7 +339,6 @@ public class Person extends Agent {
 			this.name = (String) args[0];
 			System.out.println("{"+Person.this.name+"}Arguments: " + args.toString());
 		} else {
-			//System.out.println("{"+Person.this.name+"}I don't have arguments.");
 			Person.this.name= getAID().getLocalName();
 		}
 
@@ -333,15 +384,10 @@ public class Person extends Agent {
 
 		try {
 			DFAgentDescription[] result = DFService.search(this, template);
-			System.out.println("length= "+ result.length);
 			for(int i=0; i<result.length; ++i){
-
-
-				System.out.println("vou inserir ");	
 
 				AllAgents po = new AllAgents(result[i].getName());
 				allAgents.addElement(po);
-				System.out.println("agents.size: "+ allAgents.size());	
 			}
 		} catch(FIPAException e) { e.printStackTrace(); }
 
