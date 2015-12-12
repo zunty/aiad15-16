@@ -105,21 +105,21 @@ public class Schedule {
 	//0 = ok 1 = nogood 2 = stop
 	public int checkAvailability(DateTime init, DateTime end){
 
-		System.out.println("Tempo inicial: " + init.toString());
-		System.out.println("Tempo final: " + end.toString());
-		System.out.println("Tamanho assignment inicial do " + owner + ":" + assignments.size() + "\n");
+		//System.out.println("Tempo inicial: " + init.toString());
+		//System.out.println("Tempo final: " + end.toString());
+		//System.out.println("Tamanho assignment inicial do " + owner + ":" + assignments.size() + "\n");
 
 		for(int i=0;i<assignments.size();i++){
 			//verifica - verificar quando comeÃ§am a mesma hora
 			if(  (init.isAfter(assignments.elementAt(i).getStartHour())&&init.isBefore(assignments.elementAt(i).getEndHour()))) {
-				System.out.println("Esse horário nao esta disponivel");
+				System.out.println("Esse horário nao esta disponivel para " + owner);
 				return 1;
 			}
 			else if(init.equals(assignments.elementAt(i).getStartHour())){
-				System.out.println("Esse horário nao esta disponivel");				return 1;
+				System.out.println("Esse horário nao esta disponivel " + owner);				return 1;
 			}
 		}
-		System.out.println("Estou disponivel");
+		System.out.println("O " + owner + " esta disponivel neste horario");
 		return 0;
 	}
 

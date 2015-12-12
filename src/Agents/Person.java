@@ -95,12 +95,10 @@ public class Person extends Agent {
 							
 							//Verificar disponibilidade primeiro
 							//0 = ok 1 = nogood 2 = stop
-							System.out.println("\nDono do schedule:"+Person.this.schedule.getOwner());
 							typeOfResponse = Person.this.schedule.checkAvailability(initialTime, endingTime); 
 							//}
 
 							if(typeOfResponse == 0){
-								System.out.println("Dono do schedule:" + Person.this.schedule.getOwner());
 								//Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
 								sendOK(msg,eventName,convID,initialTime,endingTime);
 								//adiciona assignement
@@ -185,7 +183,7 @@ public class Person extends Agent {
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPAGATE) {
 					
 					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-					System.out.println(msg.getContent().toString());
+					System.out.println("\n" + msg.getContent().toString() + "\n");
 					String[] parts = msg.getContent().split("-");
 					
 					String convID = parts[1];
@@ -266,7 +264,7 @@ public class Person extends Agent {
 			
 			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
-			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
+			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 		
@@ -282,7 +280,7 @@ public class Person extends Agent {
 			
 			sendMsg.setContent("INVITATION-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
-			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
+			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 		
@@ -298,7 +296,7 @@ public class Person extends Agent {
 			
 			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
-			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
+			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
@@ -313,7 +311,7 @@ public class Person extends Agent {
 			sendMsg.addReceiver(message.getSender());
 			sendMsg.setContent("NOGOOD-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
-			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
+			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 
 		}
