@@ -1,10 +1,13 @@
 package Agents;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
+
+import org.joda.time.format.DateTimeFormat;
 
 import PersonClasses.AllAgents;
 import PersonClasses.Assignment;
@@ -99,7 +102,7 @@ public class Person extends Agent {
 
 							if(typeOfResponse == 0){
 								System.out.println("Dono do schedule:" + Person.this.schedule.getOwner());
-								Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
+								//Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
 								sendOK(msg,eventName,convID,initialTime,endingTime);
 								//adiciona assignement
 							}
@@ -132,7 +135,7 @@ public class Person extends Agent {
 					int separatorIndex = msg.getContent().indexOf('-');
 					if (separatorIndex != -1) {
 						String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-						/*
+						System.out.println(msg.getContent().toString());
 						String[] parts = msg.getContent().split("-");
 						
 						String convID = parts[1];
@@ -145,18 +148,22 @@ public class Person extends Agent {
 						for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
 						DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
 								initTime[4]);
+						System.out.println("Data inicial para confirmar: " + initialTime); 
 
 						for(int i=0;i<5;i++){endTime[i] = Integer.parseInt(partsEndTime[i]);}
 						DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
-								endTime[4]);*/
+								endTime[4]);
+						System.out.println("Data Final para confirmar: " + endingTime); 
+						
 						switch (msgType) {
 						case "OK?":
 							System.out.println("I received an OK message!");
-							//TODO:send confirm
 							//TODO: Adicionar vector para participantes
-							//Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
-							//sendConfirm();
-							//TODO: Adicionar evento aos dois utilizadores
+							//Adicionar evento aos dois utilizadores
+							Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
+							//TODO:send confirm
+							sendConfirm(msg,eventName,convID,initialTime,endingTime);
+
 							break;
 						case "NOGOOD":
 							System.out.println("I received a NOGOOD message!"); 
@@ -174,8 +181,37 @@ public class Person extends Agent {
 					}
 					else {
 						System.err.println("Received an invalid message");
+						
 					}
 				}
+				
+				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.CONFIRM) {
+					
+					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
+					System.out.println(msg.getContent().toString());
+					String[] parts = msg.getContent().split("-");
+					
+					String convID = parts[1];
+					String eventName = parts[2];
+					String[] partsInitTime = parts[3].split(":");
+					String[] partsEndTime = parts[4].split(":");
+					int[] initTime = new int[5];
+					int[] endTime = new int[5];
+
+					for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
+					DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
+							initTime[4]);
+
+					for(int i=0;i<5;i++){endTime[i] = Integer.parseInt(partsEndTime[i]);}
+					DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
+							endTime[4]);
+					
+					//Modificar para vetor de Participantes
+					Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
+					System.out.println("\n-----------------------------------------------------------------------------\n");
+
+				}
+
 				//nao aceitar
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REJECT_PROPOSAL) {
 
@@ -189,7 +225,13 @@ public class Person extends Agent {
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("OK?-" + eventName + "-" + init + "-" + end);
+			
+			org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("y:M:d:H:m");
+			String initStr = fmt.print(init);
+			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
+			String endStr = fmt2.print(end);
+			
+			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
 			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
@@ -199,7 +241,13 @@ public class Person extends Agent {
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.CONFIRM);
 			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("CONFIRM-" + eventName + "-" + init + "-" + end);
+			
+			org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("y:M:d:H:m");
+			String initStr = fmt.print(init);
+			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
+			String endStr = fmt2.print(end);
+			
+			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
 			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
@@ -209,7 +257,14 @@ public class Person extends Agent {
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 			
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("NOGOOD-" + eventName + "-" + init + "-" + end);
+			
+			org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("y:M:d:H:m");
+			String initStr = fmt.print(init);
+			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
+			String endStr = fmt2.print(end);
+			
+			sendMsg.addReceiver(message.getSender());
+			sendMsg.setContent("NOGOOD-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(convID);
 			System.out.println("\n mensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);

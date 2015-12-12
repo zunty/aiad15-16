@@ -113,11 +113,14 @@ public class Schedule {
 			System.out.println("entra!");
 			//verifica - verificar quando começam a mesma hora
 			if(  (init.isAfter(assignments.elementAt(i).getStartHour())&&init.isBefore(assignments.elementAt(i).getEndHour()))) {
-				System.out.println("N�o est� dispon�vel");
+				System.out.println("Nao esta disponivel");
+				return 1;
+			}
+			if(init.equals(assignments.elementAt(i).getStartHour())){
 				return 1;
 			}
 		}
-		System.out.println("Est� dispon�vel");
+		System.out.println("Estou disponivel");
 		return 0;
 	}
 
