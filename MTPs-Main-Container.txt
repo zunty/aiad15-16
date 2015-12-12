@@ -1,5 +1,1 @@
-<<<<<<< HEAD
 http://Joao.home:7778/acc
-=======
-http://mbpdedaanhuysse.home:7778/acc
->>>>>>> origin/master
