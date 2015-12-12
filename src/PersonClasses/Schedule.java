@@ -116,6 +116,10 @@ public class Schedule {
 				System.out.println("N�o est� dispon�vel");
 				return 1;
 			}
+			else if(init.equals(assignments.elementAt(i).getStartHour())){
+				System.out.println("N�o est� dispon�vel");
+				return 1;
+			}
 		}
 		System.out.println("Est� dispon�vel");
 		return 0;
