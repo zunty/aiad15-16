@@ -1,5 +1,4 @@
 package PersonClasses;
-import java.util.Iterator;
 import java.util.Vector;
 
 import org.joda.time.DateTime;
@@ -58,7 +57,7 @@ public class Schedule {
 	public void addAssignment(Assignment a) {
 
 		assignments.add(a);
-		System.out.println("Inseri no " + owner);
+		System.out.println(owner + ": I have inserted one new assignment");
 	}
 
 	public String myAssignments() {
@@ -76,57 +75,21 @@ public class Schedule {
 		assignments.remove(assignmentPosHour);
 	}
 
-	public int checkProposal(Proposal p){
-
-		//TODO
-		return 0;
-	}
-
-	public void insertProposal(Proposal p){
-
-		//Se ainda nï¿½o existir coloca no vetor
-		if( getAssignment(p.getAssignmentName()) == null){
-			//Modificar para construtor novo
-			//Assignment e = new Assignment(p.getAssignmentName(), p.getStartHour(), p.getEndHour(), p.getProposer(), p.getPriority());
-			//assignments.add(e);
-			System.out.println("{"+owner+"}inserted new assignment: "+p.getAssignmentName());
-		}
-		else{
-			System.out.println("That assignment" +p.getAssignmentName() + "already exists for " + owner);
-		}
-	}
-
-	public boolean checkOverlappingAssignments(Proposal p)
-	{
-		//TODO
-		return false;
-	}
-
 	//0 = ok 1 = nogood 2 = stop
 	public int checkAvailability(DateTime init, DateTime end){
 
-		//System.out.println("Tempo inicial: " + init.toString());
-		//System.out.println("Tempo final: " + end.toString());
-		//System.out.println("Tamanho assignment inicial do " + owner + ":" + assignments.size() + "\n");
-
 		for(int i=0;i<assignments.size();i++){
-			//verifica - verificar quando comeÃ§am a mesma hora
+			//verifica quando se iniciam a mesma hora
 			if(  (init.isAfter(assignments.elementAt(i).getStartHour())&&init.isBefore(assignments.elementAt(i).getEndHour()))) {
-				System.out.println("Esse horário nao esta disponivel para " + owner);
+				System.out.println("This assignment can't be at this time for " + owner + "\n");
 				return 1;
 			}
 			else if(init.equals(assignments.elementAt(i).getStartHour())){
-				System.out.println("Esse horário nao esta disponivel " + owner);				return 1;
+				System.out.println("This assignment can't be at this time for " + owner + "\n");	return 1;
 			}
 		}
-		System.out.println("O " + owner + " esta disponivel neste horario");
+		System.out.println(owner + " is available during this time\n");
 		return 0;
-	}
-
-	public boolean getPeopleAssignmentsWith(String Person) {
-
-		//TODO
-		return true;
 	}
 	
 	public void print(){

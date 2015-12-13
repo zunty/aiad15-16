@@ -1,8 +1,17 @@
-INVITATION-1-Study-2015:11:28:9:0-2015:11:28:11:0
+Exemplos de Utilização
 
-
-Enviadas pelo Pedro:
+Enviar proposta do Pedro:
+(Performative = PROPAGATE)
 INVITATION-1-Study-2015:11:28:9:0-2015:11:28:11:0-Joao;Miguel;Fernando;David
 
 Inserir uma tarefa num utilizador
-CONFIRM-1-
+(Performative = REQUEST)
+ASSIGNMENT-1-Study-2015:11:28:9:0-2015:11:28:11:0
+
+Consultar o horário de um agente
+(Performative = REQUEST)
+SCHEDULE
+
+Eliminar um agente
+(Performative = REQUEST)
+END

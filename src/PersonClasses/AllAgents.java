@@ -1,7 +1,5 @@
 package PersonClasses;
 
-import java.util.Vector;
-
 import jade.core.AID;
 
 public class AllAgents {

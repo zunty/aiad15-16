@@ -14,9 +14,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 
-
-
-
 public class Person extends Agent {
 
 	//Instancia variáveis de cada um dos agentes
@@ -29,9 +26,11 @@ public class Person extends Agent {
 	int nOKSTotal;
 	private Vector<String> v;
 
-
+	//Comportamento ABT do Agente
 	class ABTBehaviour extends CyclicBehaviour{
 
+
+		private static final long serialVersionUID = 1L;
 		//Instancia variáveis de cada um dos comportamentos de agentes
 		boolean end = false;
 		int myValue=0;
@@ -54,22 +53,57 @@ public class Person extends Agent {
 					System.out.println("{"+Person.this.name+"}received a failure message, this person is terminating");
 					Person.this.doDelete();
 				}
-				
+
 				//Este tipo acontece quando recebe uma mensagem do tipo REQUEST
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REQUEST) {
-					System.out.println("entrei no request");
-					String parts = msg.getContent();
-					switch (parts) {
+					System.out.println("\n----------------------New Request-----------------------------\n");
+
+					String[] parts = msg.getContent().split("-");
+					String msgType = parts[0];
+					switch (msgType) {
 					//Imprime  schedule do proprio 
 					case "SCHEDULE":
+						System.out.println("Printing my schedule\n");
 						Person.this.schedule.print();
 						break;
 
-					//Termina o próprio agente	
+					//Termina o proprio agente	
 					case "END":
 						end=true;
 						exit();
 						break;	
+					
+					//Adiciona assignment ao proprio agente
+					case "ASSIGNMENT":
+						String eventName = parts[2];
+						String eventID = parts[1];
+						String[] partsInitTime = parts[3].split(":");
+						String[] partsEndTime = parts[4].split(":");
+						int[] initTime = new int[5];
+						int[] endTime = new int[5];
+
+						for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
+						DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
+								initTime[4]);
+
+						for(int i=0;i<5;i++){endTime[i] = Integer.parseInt(partsEndTime[i]);}
+						DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
+								endTime[4]);
+						int typeOfResponse = 0;
+						//Verificar disponibilidade
+						typeOfResponse = Person.this.schedule.checkAvailability(initialTime, endingTime); 
+
+						//Se estiver disponivel o typeOfResponse e igual a 0
+						if(typeOfResponse == 0){
+							Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,msg.getSender().toString()));
+						}
+						//Se nao estiver disponivel o typeOfResponse e igual a 1
+						else if(typeOfResponse == 1){
+							System.out.println("\nVou mandar nogood!");
+							sendNoGood(msg, eventName,eventID,initialTime,endingTime);
+						}
+						
+					break;
 
 					default:
 						System.err.println(name + " - Received an invalid message type.");
@@ -89,7 +123,7 @@ public class Person extends Agent {
 
 						switch (msgType) {
 						case "INVITATION":
-							System.out.println("This is an invitation to " + name + "!");
+							System.out.println("This is an invitation to " + name + "!" + "The new assignment is: " + parts[1]+ "\n");
 
 							//Ler o conteudo e obter parametros da mensagem
 							String eventID = parts[1];
@@ -111,6 +145,7 @@ public class Person extends Agent {
 
 							//Verificar disponibilidade do agente convidado
 							typeOfResponse = Person.this.schedule.checkAvailability(initialTime, endingTime); 
+							System.out.println();
 
 							//Se estiver disponível o typeOfResponse é igual a 0
 							if(typeOfResponse == 0){
@@ -118,7 +153,7 @@ public class Person extends Agent {
 							}
 							//Se não estiver disponível o typeOfResponse é igual a 1
 							else if(typeOfResponse == 1){
-								System.out.println("\nVou mandar nogood!");
+								System.out.println(name + ": " + "I'm gonna send a nogood message!" + "\n");
 								sendNoGood(msg, eventName,eventID,initialTime,endingTime);
 							}
 							//Se enviar um stop o typeOfResponse é igual a 2
@@ -147,7 +182,6 @@ public class Person extends Agent {
 					int separatorIndex = msg.getContent().indexOf('-');
 					if (separatorIndex != -1) {
 						String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
-						System.out.println(msg.getContent().toString());
 						String[] parts = msg.getContent().split("-");
 
 						String eventID = parts[1];
@@ -173,7 +207,7 @@ public class Person extends Agent {
 
 							//Apenas se confirma a proposta se todos os convidados tiverem confirmado a disponiilidade para esse evento
 							if(nOKS == nOKSTotal){
-								System.out.println("Confirmaram todos"); 
+								System.out.println("\n" + name + ": " + "All agents confirmed their availability"); 
 								for(int i =0;i<v.size();i++){
 									for(int j=0; j<allAgents.size();j++){
 										if(v.elementAt(i).equals(allAgents.elementAt(j).getAid().getLocalName())){
@@ -185,28 +219,30 @@ public class Person extends Agent {
 								}
 								//Inserir no próprio
 								sendConfirm(this.getAgent().getAID(),eventName,eventID,initialTime,endingTime);
+								System.out.println(name + ": " + "Added all agents to the assignment " + eventID + "\n");
+
 
 							}
 							break;
 
 							//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						case "NOGOOD":
-							System.out.println("I received a NOGOOD message from " + name + " do evento " + eventName); 
+							System.out.println(name + ": " + "I received a NOGOOD message from " + msg.getSender().getLocalName() + " do evento " + eventID); 
 							break;
 
 							//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						case "STP":
-							System.out.println("I received a STP message!");
+							System.out.println(name + ": " + "I received a STP message!");
 							break;
 
 							//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						default:
-							System.err.println("Received an invalid INFORM message type.");
+							System.err.println(name + ": " + "Received an invalid INFORM message type.");
 							break;
 						}
 					}
 					else {
-						System.err.println("Received an invalid message");
+						System.err.println(name + ": " + "Received an invalid message");
 
 					}
 				}
@@ -214,6 +250,7 @@ public class Person extends Agent {
 				//Este tipo acontece quando recebe uma mensagem do tipo PROPAGATE
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPAGATE) {
 
+					System.out.println("\n------------------------SEND INVITATION-----------------------\n");
 					System.out.println("\n" + msg.getContent().toString() + "\n");
 					String[] parts = msg.getContent().split("-");
 
@@ -242,9 +279,8 @@ public class Person extends Agent {
 
 					//Obter os convidados para um determinado pedido de evento
 					for(int i = 0;i<convidados.length;i++){
-						System.out.println("Vou enviar um invitation para: " + convidados[i]);
+						System.out.println(name + ": " + "I'm gonna send an invitation to: " + convidados[i] + "\n");
 						for(int j = 0;j<allAgents.size();j++){
-							System.out.println("nome:" + allAgents.elementAt(j).getAid().getLocalName());
 							if(convidados[i].equals(allAgents.elementAt(j).getAid().getLocalName())){
 								send = allAgents.elementAt(j).getAid();
 								if(aux == 0){
@@ -255,7 +291,7 @@ public class Person extends Agent {
 						aux++;
 						sendInvitation(msg,eventID,eventName,initialTime,endingTime,send);
 					}
-					
+
 					//Reiniciar variáveis para depois enviar apenas quando todos confirmarem pedido
 					nOKS=0;
 					nOKSTotal=convidados.length;
@@ -265,9 +301,6 @@ public class Person extends Agent {
 				//Este tipo acontece quando receb uma mensagem do tipo CONFIRM
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.CONFIRM) {
 
-					System.out.println("Entrei aqui");
-
-					System.out.println(msg.getContent().toString());
 					String[] parts = msg.getContent().split("-");
 
 					String eventName = parts[1];
@@ -286,7 +319,6 @@ public class Person extends Agent {
 
 					//Adicionar tarefa no proprio
 					Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,msg.getSender().toString()));
-					System.out.println("\n-----------------------------------------------------------------------------\n");
 
 				}
 
@@ -308,7 +340,6 @@ public class Person extends Agent {
 
 			sendMsg.setContent("OK?-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(eventID);
-			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
@@ -325,7 +356,6 @@ public class Person extends Agent {
 
 			sendMsg.setContent("INVITATION-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(eventID);
-			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
@@ -342,7 +372,6 @@ public class Person extends Agent {
 
 			sendMsg.setContent("OK?-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(eventID);
-			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
@@ -358,7 +387,6 @@ public class Person extends Agent {
 			sendMsg.addReceiver(message.getSender());
 			sendMsg.setContent("NOGOOD-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
 			sendMsg.setConversationId(eventID);
-			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 
 		}
@@ -371,7 +399,6 @@ public class Person extends Agent {
 			sendMsg.addReceiver(message.getSender());
 			sendMsg.setContent("STP-" + evento);
 			sendMsg.setConversationId("ID do evento");
-			System.out.println(sendMsg + "Mensagem a enviar");
 			send(sendMsg);
 
 		}
@@ -426,7 +453,7 @@ public class Person extends Agent {
 
 	//Encontra todos os agentes existentes no sistema
 	private void findAllAgents() {
-		
+
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd1 = new ServiceDescription();
 		sd1.setType("Person");

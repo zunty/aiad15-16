@@ -10,22 +10,15 @@ public class Assignment {
 	Duration duration;
 	Vector<Participant> participants;
 	
-	public Assignment(String name, DateTime sh, DateTime eh,/* Vector<Participant> parti,*/ String proposer){
+	public Assignment(String name, DateTime sh, DateTime eh, String proposer){
 		this.name = name;
 		this.startHour = sh;
 		this.endHour = eh;
 		this.duration = new Duration(sh, eh);
-		//this.participants = parti;
 		Participant sender = new Participant(proposer);
-		//participants.addElement(sender);
 	}
 	public Assignment(){
 		this.name = "Joao";
-		
-		//this.duration = new Duration(sh, eh);
-		//this.participants = parti;
-		//Participant sender = new Participant(proposer);
-		//participants.addElement(sender);
 		participants = new Vector<Participant>();
 	}
 	
@@ -76,10 +69,6 @@ public class Assignment {
 				return true;;
 		}
 		return false;
-	}
-	
-	public void reset(){
-		//TODO
 	}
 	
 	public String print(){
