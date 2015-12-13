@@ -1,39 +1,25 @@
 package Agents;
 
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Vector;
-
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
-
 import org.joda.time.format.DateTimeFormat;
-
 import PersonClasses.AllAgents;
 import PersonClasses.Assignment;
-import PersonClasses.Participant;
-import PersonClasses.Proposal;
-import PersonClasses.Restriction;
 import PersonClasses.Schedule;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.introspection.ACLMessage;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
-import jade.lang.acl.MessageTemplate;
 
 
 
 
 public class Person extends Agent {
 
-	/**
-	 * 
-	 */
+	//Instancia variáveis de cada um dos agentes
 	private static final long serialVersionUID = 1L;
 	private String name;
 	public int assignmentsQuant;
@@ -46,42 +32,67 @@ public class Person extends Agent {
 
 	class ABTBehaviour extends CyclicBehaviour{
 
+		//Instancia variáveis de cada um dos comportamentos de agentes
 		boolean end = false;
 		int myValue=0;
-		//TODO:DECLARAR OUTRAS VARIAVEIS
 
+		//Construtor do ABTBehaviour
 		public ABTBehaviour(Agent person) {
 			super (person);
 		}
 
+		//Função onde ocorre todo o comportamento da classe ABTBehaviour
 		@Override
 		public void action() {
 
 			while(!end){
-
-				//findAllAgents();
+				//Recebe uma qualquer mensagem destinada a ele
 				jade.lang.acl.ACLMessage msg = blockingReceive();
-				//System.out.println("Mensagem recebida" + msg);
 
+				//Este tipo acontece quando alguma coisa enviada na mensagem não é correta
 				if(msg.getPerformative() == jade.lang.acl.ACLMessage.FAILURE){
 					System.out.println("{"+Person.this.name+"}received a failure message, this person is terminating");
 					Person.this.doDelete();
 				}
+				
+				//Este tipo acontece quando recebe uma mensagem do tipo REQUEST
+				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REQUEST) {
+					System.out.println("entrei no request");
+					String parts = msg.getContent();
+					switch (parts) {
+					//Imprime  schedule do proprio 
+					case "SCHEDULE":
+						Person.this.schedule.print();
+						break;
 
+					//Termina o próprio agente	
+					case "END":
+						end=true;
+						exit();
+						break;	
+
+					default:
+						System.err.println(name + " - Received an invalid message type.");
+						break;
+					}
+				}
+
+				//Este tipo acontece quando recebe uma mensagem do tipo PROPOSE
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPOSE) {
+
+					//Separar várias componentes da mensagem, que se encontram separadas por "-"
 					int separatorIndex = msg.getContent().indexOf('-');
 					if (separatorIndex != -1) {
 
 						String[] parts = msg.getContent().split("-");
 						String msgType = parts[0];
-						//Imprimir parametros do conteudo
-						//for(int i=0; i< parts.length;i++){System.out.println("Parts[" + i + "] = " + parts[i]);}
 
 						switch (msgType) {
 						case "INVITATION":
 							System.out.println("This is an invitation to " + name + "!");
+
 							//Ler o conteudo e obter parametros da mensagem
-							String convID = parts[1];
+							String eventID = parts[1];
 							String eventName = parts[2];
 							String[] partsInitTime = parts[3].split(":");
 							String[] partsEndTime = parts[4].split(":");
@@ -98,24 +109,21 @@ public class Person extends Agent {
 							int typeOfResponse = 0;
 
 
-							//Verificar disponibilidade primeiro
-							//0 = ok 1 = nogood 2 = stop
+							//Verificar disponibilidade do agente convidado
 							typeOfResponse = Person.this.schedule.checkAvailability(initialTime, endingTime); 
-							//}
 
+							//Se estiver disponível o typeOfResponse é igual a 0
 							if(typeOfResponse == 0){
-								//Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
-								sendOK(msg,eventName,convID,initialTime,endingTime);
-								//adiciona assignement
+								sendOK(msg,eventName,eventID,initialTime,endingTime);
 							}
+							//Se não estiver disponível o typeOfResponse é igual a 1
 							else if(typeOfResponse == 1){
 								System.out.println("\nVou mandar nogood!");
-								sendNoGood(msg, eventName,convID,initialTime,endingTime);
+								sendNoGood(msg, eventName,eventID,initialTime,endingTime);
 							}
+							//Se enviar um stop o typeOfResponse é igual a 2
 							else if(typeOfResponse == 2)
 								sendStp(msg);
-
-							else System.err.println("Erro no tipo de envio de mensagem");
 							break;
 
 
@@ -131,16 +139,18 @@ public class Person extends Agent {
 
 					} 
 				}
-				//depos de mandar mensagem ok ou nogood 
+
+				//Este tipo acontece quando recebe uma mensagem do tipo INFORM
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.INFORM) {
 
+					//Separar várias componentes da mensagem, que se encontram separadas por "-"
 					int separatorIndex = msg.getContent().indexOf('-');
 					if (separatorIndex != -1) {
 						String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
 						System.out.println(msg.getContent().toString());
 						String[] parts = msg.getContent().split("-");
 
-						String convID = parts[1];
+						String eventID = parts[1];
 						String eventName = parts[2];
 						String[] partsInitTime = parts[3].split(":");
 						String[] partsEndTime = parts[4].split(":");
@@ -156,41 +166,40 @@ public class Person extends Agent {
 								endTime[4]);
 
 						switch (msgType) {
+						//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						case "OK?":
-							System.out.println("Tamanho do vector v: " + v.size());
-							//send confirm
+							//Cada pessoa que confirma 
 							nOKS++;
-							if(nOKS == nOKSTotal){
 
-								//TODO:Enviar para todos
+							//Apenas se confirma a proposta se todos os convidados tiverem confirmado a disponiilidade para esse evento
+							if(nOKS == nOKSTotal){
 								System.out.println("Confirmaram todos"); 
 								for(int i =0;i<v.size();i++){
-									System.out.println(v.elementAt(i));
-									//Esta mal, tem que enviar um sendConfirm para todos para marcar na agenda de cada um
 									for(int j=0; j<allAgents.size();j++){
-										System.out.println(v.elementAt(i) + " = " + allAgents.elementAt(j).getAid().getLocalName() );
 										if(v.elementAt(i).equals(allAgents.elementAt(j).getAid().getLocalName())){
-											sendConfirm(allAgents.elementAt(j).getAid(),eventName,convID,initialTime,endingTime);
+											sendConfirm(allAgents.elementAt(j).getAid(),eventName,eventID,initialTime,endingTime);
 											break;
 										}
 									}
-								
+
 								}
 								//Inserir no próprio
-								sendConfirm(this.getAgent().getAID(),eventName,convID,initialTime,endingTime);
+								sendConfirm(this.getAgent().getAID(),eventName,eventID,initialTime,endingTime);
 
 							}
 							break;
+
+							//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						case "NOGOOD":
 							System.out.println("I received a NOGOOD message from " + name + " do evento " + eventName); 
-
-							//TODO: Reenviar mensagem porpose com outras hora
 							break;
+
+							//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						case "STP":
 							System.out.println("I received a STP message!");
-							//TODO: Rejeitar a proposta e nï¿½o contra-propor
-							//end = true;
 							break;
+
+							//Quando um agente recebe uma mensagem de resposta positiva ao convite do próprio agente a outro
 						default:
 							System.err.println("Received an invalid INFORM message type.");
 							break;
@@ -202,22 +211,20 @@ public class Person extends Agent {
 					}
 				}
 
+				//Este tipo acontece quando recebe uma mensagem do tipo PROPAGATE
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.PROPAGATE) {
 
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
 					System.out.println("\n" + msg.getContent().toString() + "\n");
 					String[] parts = msg.getContent().split("-");
 
-					String convID = parts[1];
+					String eventID = parts[1];
 					String eventName = parts[2];
 					String[] partsInitTime = parts[3].split(":");
 					String[] partsEndTime = parts[4].split(":");
 					int[] initTime = new int[5];
 					int[] endTime = new int[5];
 					String[] convidados = null;
-					//Arrays.fill(convidados, null);
 					convidados= parts[5].split(";");
-					System.out.println("Tamanho dos convidados" + convidados.length);
 
 					for(int i=0;i<5;i++){initTime[i] = Integer.parseInt(partsInitTime[i]);}
 					DateTime initialTime = new DateTime(initTime[0],initTime[1],initTime[2],initTime[3],
@@ -227,15 +234,13 @@ public class Person extends Agent {
 					DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
 							endTime[4]);
 
-					//TODO:CICLO FOR PARA TODOS OS USERS QUE VAO SER CONVIDADOS
+					//Reiniciar as variáveis após um novo pedido de evento
 					AID send = null;
-					System.out.println("Vou limpar o v");
 					v.removeAllElements();
-
-					System.out.println("Limpei o v, agora contem " + v.size() + "elementos");
 
 					int aux = 0;
 
+					//Obter os convidados para um determinado pedido de evento
 					for(int i = 0;i<convidados.length;i++){
 						System.out.println("Vou enviar um invitation para: " + convidados[i]);
 						for(int j = 0;j<allAgents.size();j++){
@@ -248,25 +253,24 @@ public class Person extends Agent {
 							}
 						}
 						aux++;
-
-						sendInvitation(msg,convID,eventName,initialTime,endingTime,send);
+						sendInvitation(msg,eventID,eventName,initialTime,endingTime,send);
 					}
-					//Limpar array de convidados no fim
+					
+					//Reiniciar variáveis para depois enviar apenas quando todos confirmarem pedido
 					nOKS=0;
 					nOKSTotal=convidados.length;
 
 				}
 
+				//Este tipo acontece quando receb uma mensagem do tipo CONFIRM
 				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.CONFIRM) {
 
 					System.out.println("Entrei aqui");
 
-					String msgType = msg.getContent().substring(0, msg.getContent().indexOf('-'));
 					System.out.println(msg.getContent().toString());
 					String[] parts = msg.getContent().split("-");
 
-					String convID = parts[1];
-					String eventName = parts[2];
+					String eventName = parts[1];
 					String[] partsInitTime = parts[3].split(":");
 					String[] partsEndTime = parts[4].split(":");
 					int[] initTime = new int[5];
@@ -280,22 +284,19 @@ public class Person extends Agent {
 					DateTime endingTime = new DateTime(endTime[0],endTime[1],endTime[2],endTime[3],
 							endTime[4]);
 
-					//Modificar para vetor de Participantes
-					Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,1,msg.getSender().toString()));
+					//Adicionar tarefa no proprio
+					Person.this.schedule.addAssignment(new Assignment(eventName,initialTime,endingTime,msg.getSender().toString()));
 					System.out.println("\n-----------------------------------------------------------------------------\n");
 
 				}
 
-				//nao aceitar
-				else if (msg.getPerformative() == jade.lang.acl.ACLMessage.REJECT_PROPOSAL) {
-
-				}
-
+				//Este tipo acontece quando receb uma mensagem com um tipo não existência
 				else System.err.println("Received an invalid message type.");
 			}	
 		}	
 
-		private void sendOK(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end){
+		//Função auxiliar para enviar mensagens do tipo INFORM positivo
+		private void sendOK(jade.lang.acl.ACLMessage message, String eventName, String eventID, DateTime init, DateTime end){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 
 			sendMsg.addReceiver(message.getSender());
@@ -305,13 +306,14 @@ public class Person extends Agent {
 			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
 			String endStr = fmt2.print(end);
 
-			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
-			sendMsg.setConversationId(convID);
+			sendMsg.setContent("OK?-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
+			sendMsg.setConversationId(eventID);
 			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
-		private void sendInvitation(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end, AID guest){
+		//Função auxiliar para enviar mensagens do tipo PROPOSE
+		private void sendInvitation(jade.lang.acl.ACLMessage message, String eventName, String eventID, DateTime init, DateTime end, AID guest){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.PROPOSE);
 
 			sendMsg.addReceiver(guest);
@@ -321,13 +323,14 @@ public class Person extends Agent {
 			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
 			String endStr = fmt2.print(end);
 
-			sendMsg.setContent("INVITATION-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
-			sendMsg.setConversationId(convID);
+			sendMsg.setContent("INVITATION-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
+			sendMsg.setConversationId(eventID);
 			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
-		private void sendConfirm(AID receiver, String eventName, String convID, DateTime init, DateTime end){
+		//Função auxiliar para enviar mensagens do tipo CONFIRM
+		private void sendConfirm(AID receiver, String eventName, String eventID, DateTime init, DateTime end){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.CONFIRM);
 
 			sendMsg.addReceiver(receiver);
@@ -337,13 +340,14 @@ public class Person extends Agent {
 			org.joda.time.format.DateTimeFormatter fmt2 = DateTimeFormat.forPattern("y:M:d:H:m");
 			String endStr = fmt2.print(end);
 
-			sendMsg.setContent("OK?-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
-			sendMsg.setConversationId(convID);
+			sendMsg.setContent("OK?-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
+			sendMsg.setConversationId(eventID);
 			System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 		}
 
-		private void sendNoGood(jade.lang.acl.ACLMessage message, String eventName, String convID, DateTime init, DateTime end){
+		//Função auxiliar para enviar mensagens do tipo INFORM negativo
+		private void sendNoGood(jade.lang.acl.ACLMessage message, String eventName, String eventID, DateTime init, DateTime end){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 
 			org.joda.time.format.DateTimeFormatter fmt = DateTimeFormat.forPattern("y:M:d:H:m");
@@ -352,13 +356,14 @@ public class Person extends Agent {
 			String endStr = fmt2.print(end);
 
 			sendMsg.addReceiver(message.getSender());
-			sendMsg.setContent("NOGOOD-" + convID + "-" + eventName + "-" + initStr + "-" + endStr);
-			sendMsg.setConversationId(convID);
+			sendMsg.setContent("NOGOOD-" + eventID + "-" + eventName + "-" + initStr + "-" + endStr);
+			sendMsg.setConversationId(eventID);
 			//System.out.println("\nMensagem a enviar \n" + sendMsg + "\n");
 			send(sendMsg);
 
 		}
 
+		//Função auxiliar para enviar mensagens do tipo INFORM stop
 		private void sendStp(jade.lang.acl.ACLMessage message){
 			jade.lang.acl.ACLMessage sendMsg = new jade.lang.acl.ACLMessage(jade.lang.acl.ACLMessage.INFORM);
 			String evento="EventoX"; //TODO:Ir buscar nome do envento
@@ -372,6 +377,7 @@ public class Person extends Agent {
 		}
 	}
 
+	//Inicia o agente
 	// mï¿½todo setup -------------------------------------------------------------------------------
 	protected void setup() {
 
@@ -383,7 +389,7 @@ public class Person extends Agent {
 			Person.this.name= getAID().getLocalName();
 		}
 
-		// Base para a comunicaï¿½ï¿½o de Agentes
+		// Base para a comunicacao do Agente e inicializacao
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
@@ -402,12 +408,12 @@ public class Person extends Agent {
 		}
 
 
+		//Inserir código para existirem dados para agentes que estejam a ser criados com o nome X
 		if(Person.this.name.equals("Pedro")){
 		}
 		else if(Person.this.name.equals("Joao")){
 		}
 
-		//this.assignmentsQuant = Person.this.schedule.getAssignments().size();
 		Person.this.schedule= new Schedule(Person.this.name); 
 		ABTBehaviour myBehaviour = new ABTBehaviour(this);
 		addBehaviour(myBehaviour);
@@ -416,11 +422,11 @@ public class Person extends Agent {
 		Person.this.allAgents = new Vector<AllAgents>();
 		findAllAgents();
 
-		//TODO: PEOPLE ONLINE
 	}
 
+	//Encontra todos os agentes existentes no sistema
 	private void findAllAgents() {
-		// TODO Auto-generated method stub
+		
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd1 = new ServiceDescription();
 		sd1.setType("Person");
@@ -437,10 +443,10 @@ public class Person extends Agent {
 
 	}
 
+	//Termina o agente
 	protected void exit() {
 		System.out.println("Agent "+getLocalName()+": terminating");
 
-		// termina comunicaï¿½ï¿½o
 		try {
 			DFService.deregister(this);  
 		} catch(FIPAException e) {

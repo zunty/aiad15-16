@@ -128,6 +128,13 @@ public class Schedule {
 		//TODO
 		return true;
 	}
+	
+	public void print(){
+		//System.out.println("tamanha do assign: "+ assignments.size());
+		for(int i=0; i< assignments.size();i++){
+			System.out.println(assignments.elementAt(i).print());
+		}
+	}
 
 }
 
